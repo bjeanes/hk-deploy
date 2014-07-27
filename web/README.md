@@ -17,7 +17,7 @@ service is the only way to retrieve the file and it will only work for 30 minute
 ## Testing
 
 ``` sh-session
-$ hk env -a hk-deploy | xargs -J __ env __ go run main.go curl
+$ hk env -a hk-deploy | xargs -J __ env __ go run *.go curl
 curl https://hk-deploy.s3.amazonaws.com/ \
   -Fkey="20140727/9c5ba3ed-91fe-4ab3-9c4a-705b3dab9bb4.tgz" \
   -Facl=private -FContent-Type=application/x-compressed \
