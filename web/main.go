@@ -36,6 +36,8 @@ func sign(key, data []byte) []byte {
 
 func creds(now time.Time) (credential string, signingKey []byte) {
 	credential = key_id + "/" + now.Format(short) + "/" + region + "/s3/aws4_request"
+
+	// http://goo.gl/cPOyvG
 	signingKey = []byte("AWS4" + secret)
 	signingKey = sign(signingKey, []byte(now.Format(short)))
 	signingKey = sign(signingKey, []byte(region))
