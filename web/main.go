@@ -14,14 +14,17 @@ import (
 
 var (
 	bucket = os.Getenv("AWS_S3_BUCKET")
-	key_id = os.Getenv("AWS_ACCESS_KEY_ID")
+	keyId  = os.Getenv("AWS_ACCESS_KEY_ID")
 	secret = os.Getenv("AWS_SECRET_ACCESS_KEY")
 	action = "https://" + bucket + ".s3.amazonaws.com/"
 	expire = 10 * time.Minute
 )
 
 const (
-	region = "us-east-1" // FIXME: can be derived from bucket?
+	region      = "us-east-1" // FIXME: can be derived from bucket?
+	acl         = "private"
+	algorithm   = "AWS4-HMAC-SHA256"
+	contentType = "application/x-compressed"
 
 	// time layouts based on reference time (see pkg "time")
 	iso8601 = "20060102T150405Z0700"
@@ -35,7 +38,7 @@ func sign(key, data []byte) []byte {
 }
 
 func creds(now time.Time) (credential string, signingKey []byte) {
-	credential = key_id + "/" + now.Format(short) + "/" + region + "/s3/aws4_request"
+	credential = keyId + "/" + now.Format(short) + "/" + region + "/s3/aws4_request"
 
 	// http://goo.gl/cPOyvG
 	signingKey = []byte("AWS4" + secret)
@@ -58,13 +61,13 @@ func main() {
 	policy := `{
 	"expiration": "` + expiry + `",
 	"conditions": [
-		{"acl": "private" },
+		{"acl": "` + acl + `" },
 		{"bucket": "` + bucket + `" },
 		{"key": "` + key + `"},
 		{"x-amz-date": "` + isoNow + `"},
 		{"x-amz-credential": "` + credential + `"},
-		{"x-amz-algorithm": "AWS4-HMAC-SHA256"},
-		{"content-type": "application/x-compressed"}
+		{"x-amz-algorithm": "` + algorithm + `"},
+		{"content-type": "` + contentType + `"}
 	]
 }`
 
@@ -78,10 +81,10 @@ func main() {
 	"action": "` + action + `",
 	"fields": {
 		"key": "` + key + `",
-		"acl": "private",
-		"Content-Type": "application/x-compressed",
+		"acl": "` + acl + `",
+		"Content-Type": "` + contentType + `",
 		"X-Amz-Credential": "` + credential + `",
-		"X-Amz-Algorithm": "AWS4-HMAC-SHA256",
+		"X-Amz-Algorithm": "` + algorithm + `",
 		"X-Amz-Date": "` + isoNow + `",
 		"Policy": "` + encodedPolicy + `",
 		"X-Amz-Signature": "` + signature + `"
@@ -90,10 +93,10 @@ func main() {
 	} else {
 		response = `curl ` + action + ` ` +
 			`-Fkey="` + key + `" ` +
-			`-Facl=private ` +
-			`-FContent-Type=application/x-compressed ` +
+			`-Facl="` + acl + `" ` +
+			`-FContent-Type="` + contentType + `" ` +
 			`-FX-Amz-Credential="` + credential + `" ` +
-			`-FX-Amz-Algorithm=AWS4-HMAC-SHA256 ` +
+			`-FX-Amz-Algorithm="` + algorithm + `" ` +
 			`-FX-Amz-Date="` + isoNow + `" ` +
 			`-FPolicy="` + encodedPolicy + `" ` +
 			`-FX-Amz-Signature="` + signature + `" ` +
