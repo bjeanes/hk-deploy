@@ -57,9 +57,14 @@ func buildTgz(root string) bytes.Buffer {
 	tw := tar.NewWriter(gz)
 
 	filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
-		// TODO: handle incoming err
+		// TODO: handle incoming err more meaningfully
+		if err != nil {
+			fmt.Println(err.Error())
+			return err
+		}
 
 		if shouldIgnore(path) {
+			// FIXME path may not always be a dir here
 			return filepath.SkipDir
 		}
 
@@ -70,21 +75,33 @@ func buildTgz(root string) bytes.Buffer {
 		fmt.Printf("Adding %s (size: %d).\n", path, info.Size())
 		hdr, err := tar.FileInfoHeader(info, path)
 		if err != nil {
+			fmt.Println(err.Error())
 			return err
 		}
 		hdr.Name = path
-		tw.WriteHeader(hdr)
+
+		if err = tw.WriteHeader(hdr); err != nil {
+			fmt.Println(err.Error())
+			return err
+		}
 
 		body, err := ioutil.ReadFile(path)
 		if err != nil {
+			fmt.Println(err.Error())
 			return err
 		}
-		tw.Write(body)
+
+		if _, err = tw.Write(body); err != nil {
+			fmt.Println(err.Error())
+			return err
+		}
 
 		return nil
 	})
 
-	gz.Close() // `buf` now contains the tgz
+	if err := gz.Close(); err != nil {
+		fmt.Println(err.Error())
+	}
 
 	return *buf
 }
