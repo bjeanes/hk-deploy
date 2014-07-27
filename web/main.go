@@ -76,7 +76,7 @@ func main() {
 
 	var response string
 
-	if false { // let me switch to and from a curl command I can just run for testing...
+	if len(os.Args) < 2 || os.Args[1] != "curl" {
 		response = `{
 	"action": "` + action + `",
 	"fields": {
