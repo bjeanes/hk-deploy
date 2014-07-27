@@ -65,7 +65,8 @@ func buildTgz(root string) bytes.Buffer {
 			return nil
 		}
 
-		fmt.Printf("Adding %s (size: %d).\n", path, info.Size())
+		fmt.Printf("  Adding %s (%d bytes)\n", path, info.Size())
+
 		hdr, err := tar.FileInfoHeader(info, path)
 		if err != nil {
 			fmt.Println(err.Error())
@@ -115,15 +116,14 @@ func main() {
 	}
 
 	dir := os.Args[1] // TODO: Maybe fallback to CWD or Git root?
-	tgz := buildTgz(dir)
-	fmt.Printf("%v %d\n", tgz.Bytes(), tgz.Len())
-	// fmt.Println(string(tgz.Bytes()))
 
-	/*
-		TODO:
-			* Check that we have an APP context or set it
-			* upload tgz to S3 with an object expiry of ~5min
-			* hit build API with that link
-			* tail output (if build api has implemented that)
-	*/
+	fullPath, _ := filepath.Abs(dir)
+	fmt.Printf("Creating .tgz of %s...\n", fullPath)
+	tgz := buildTgz(dir)
+	fmt.Printf("done (%d bytes)\n", tgz.Len())
+
+	fmt.Println("Requesting upload slot... not implemented")
+	fmt.Println("Requesting download link... not implemented")
+	fmt.Println("Submitting build with download link... not implemented")
+	fmt.Println("Commenting build... not implemented")
 }
