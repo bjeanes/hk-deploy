@@ -44,13 +44,6 @@ func shouldIgnore(path string) bool {
 	return path == ".git"
 }
 
-// FIXME: This is currently building a tgz that fails to extract without error:
-//	x deploy.go
-//	x web/README.md
-//	x web/main.go: Truncated input file (needed 418 bytes, only 0 available)
-//	tar: Error exit delayed from previous errors.
-//
-// But the files seem intact?
 func buildTgz(root string) bytes.Buffer {
 	buf := new(bytes.Buffer)
 	gz := gzip.NewWriter(buf)
@@ -98,6 +91,10 @@ func buildTgz(root string) bytes.Buffer {
 
 		return nil
 	})
+
+	if err := tw.Close(); err != nil {
+		fmt.Println(err.Error())
+	}
 
 	if err := gz.Close(); err != nil {
 		fmt.Println(err.Error())
