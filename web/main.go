@@ -6,11 +6,9 @@ import (
 )
 
 func main() {
-	policy := NewPolicy()
-
 	if len(os.Args) < 2 || os.Args[1] != "curl" {
-		fmt.Println(policy.ToJsonResponse())
+		Serve()
 	} else {
-		fmt.Println(policy.ToCurl())
+		fmt.Println(NewPolicy().ToCurl())
 	}
 }
