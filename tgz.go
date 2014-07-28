@@ -12,7 +12,17 @@ import (
 
 func shouldIgnore(path string) bool {
 	// TODO: gitignore-ish rules, if a .gitignore exists?
-	return path == ".git"
+	//       or .slugignore?
+	ignoreBases := []string{"tmp", ".git", ".DS_Store"}
+	base := filepath.Base(path)
+
+	for _, i := range ignoreBases {
+		if base == i {
+			return true
+		}
+	}
+
+	return false
 }
 
 func buildTgz(root string) bytes.Buffer {
@@ -28,8 +38,10 @@ func buildTgz(root string) bytes.Buffer {
 		}
 
 		if shouldIgnore(path) {
-			// FIXME path may not always be a dir here
-			return filepath.SkipDir
+			if info.IsDir() {
+				return filepath.SkipDir
+			}
+			return nil
 		}
 
 		if info.IsDir() {
