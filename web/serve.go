@@ -14,12 +14,15 @@ func curlHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, policy.ToCurl())
 }
 
-func handler(w http.ResponseWriter, r *http.Request) {
+func slotHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 
 	policy := NewPolicy()
 	fmt.Printf("Serving upload policy for /%s\n", policy.Key())
 	fmt.Fprintln(w, policy.ToJsonResponse())
+}
+func defaultHandler(w http.ResponseWriter, r *http.Request) {
+	http.Redirect(w, r, "https://github.com/bjeanes/hk-deploy", http.StatusSeeOther)
 }
 
 func Serve() {
@@ -31,6 +34,7 @@ func Serve() {
 	fmt.Println("Listening on " + listen)
 
 	http.HandleFunc("/curl", curlHandler)
-	http.HandleFunc("/", handler)
+	http.HandleFunc("/slot", slotHandler)
+	http.HandleFunc("/", defaultHandler)
 	http.ListenAndServe(listen, nil)
 }

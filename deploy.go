@@ -21,7 +21,7 @@ const (
 	PLUGIN_NAME    = "deploy"
 	PLUGIN_VERSION = 1
 	// PLUGIN_USER_AGENT = "hk-" + PLUGIN_NAME "/1"
-	ENDPOINT = "https://hk-deploy.herokuapp.com/"
+	ENDPOINT = "https://hk-deploy.herokuapp.com/slot"
 )
 
 var client *heroku.Client
