@@ -8,6 +8,9 @@ deploying via the [Heroku Build API](https://devcenter.heroku.com/articles/build
 
 This allows deploying without a `git push` or even having Git installed.
 
+If you want something like this for the classic Heroku Toolbelt, see @jesperfj's
+[heroku-git-flow](https://github.com/jesperfj/heroku-git-flow).
+
 ## How?
 
 It asks [the here-included backend service](/web) for a temporary set of
