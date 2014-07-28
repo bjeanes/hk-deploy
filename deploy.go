@@ -76,6 +76,7 @@ func submitBuild(url *string) error {
 
 	hk := heroku.NewService(heroku.DefaultClient)
 
+	// TODO: Talk to @cyberdelia about this. Why is the type inlined in the func definition for BuildCreate() >.<
 	type options struct {
 		SourceBlob struct {
 			URL *string `json:"url,omitempty"` // URL where gzipped tar archive of source code for build was
