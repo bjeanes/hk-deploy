@@ -11,18 +11,25 @@ const (
 	PLUGIN_NAME    = "deploy"
 	PLUGIN_VERSION = 1
 	ENDPOINT       = "https://hk-deploy.herokuapp.com/slot"
+	INFO_PREAMBLE  = `%s %d: Deploy code to Heroku using the API`
+	HELP_TEXT      = `Usage: hk deploy DIRECTORY
+
+Deploy the specified directory to Heroku`
 )
 
 func help() {
-	fmt.Println(`hk deploy: Deploy a directory of code to Heroku using the Build API.
+	fmt.Println(HELP_TEXT)
+}
 
-Run "hk deploy DIRECTORY" to deploy the specified directory to Heroku.`)
+func info() {
+	fmt.Printf(INFO_PREAMBLE+"\n\n", PLUGIN_NAME, PLUGIN_VERSION)
+	help()
+	os.Exit(0)
 }
 
 func main() {
 	if os.Getenv("HKPLUGINMODE") == "info" {
-		help()
-		os.Exit(0)
+		info()
 	}
 
 	if len(os.Args) < 2 {
