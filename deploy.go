@@ -2,8 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/bgentry/heroku-go"
-	hk "github.com/heroku/hk/hkclient"
+	"github.com/cyberdelia/heroku-go/v3"
 	"os"
 	"path/filepath"
 )
@@ -11,32 +10,13 @@ import (
 const (
 	PLUGIN_NAME    = "deploy"
 	PLUGIN_VERSION = 1
-	// PLUGIN_USER_AGENT = "hk-" + PLUGIN_NAME "/1"
-	ENDPOINT = "https://hk-deploy.herokuapp.com/slot"
+	ENDPOINT       = "https://hk-deploy.herokuapp.com/slot"
 )
-
-var client *heroku.Client
-var nrc *hk.NetRc
 
 func help() {
 	fmt.Println(`hk deploy: Deploy a directory of code to Heroku using the Build API.
 
 Run "hk deploy DIRECTORY" to deploy the specified directory to Heroku.`)
-}
-
-func init() {
-	nrc, err := hk.LoadNetRc()
-	if err != nil && os.IsNotExist(err) {
-		nrc = &hk.NetRc{}
-	}
-
-	clients, err := hk.New(nrc, "TODO user agent")
-
-	if err == nil {
-		client = clients.Client
-	} else {
-		// TODO
-	}
 }
 
 func main() {
@@ -80,6 +60,37 @@ func main() {
 	}
 
 	// working downloadable link now in slot.DownloadUrl
-	fmt.Println("Submitting build with download link... not implemented")
+	fmt.Print("Submitting build with download link... ")
+	if err := submitBuild(&slot.DownloadUrl); err == nil {
+		fmt.Println("done")
+	} else {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
 	fmt.Println("Commenting build... not implemented")
+}
+
+func submitBuild(url *string) error {
+	app := os.Getenv("HKAPP")
+	heroku.DefaultTransport.Username = os.Getenv("HKUSER")
+	heroku.DefaultTransport.Password = os.Getenv("HKPASS")
+
+	hk := heroku.NewService(heroku.DefaultClient)
+
+	type options struct {
+		SourceBlob struct {
+			URL *string `json:"url,omitempty"` // URL where gzipped tar archive of source code for build was
+			// downloaded.
+			Version *string `json:"version,omitempty"` // Version of the gzipped tarball.
+		} `json:"source_blob"` // location of gzipped tarball of source code used to create build
+	}
+	o := new(options)
+	o.SourceBlob.URL = url
+	if build, err := hk.BuildCreate(app, *o); err == nil {
+		fmt.Printf("%+v\n", build)
+	} else {
+		return err
+	}
+
+	return nil
 }
