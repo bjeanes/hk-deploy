@@ -87,15 +87,7 @@ func submitBuild(url *string) (*heroku.Build, error) {
 
 	hk := heroku.NewService(heroku.DefaultClient)
 
-	// TODO: Talk to @cyberdelia about this. Why is the type inlined in the func definition for BuildCreate() >.<
-	type options struct {
-		SourceBlob struct {
-			URL *string `json:"url,omitempty"` // URL where gzipped tar archive of source code for build was
-			// downloaded.
-			Version *string `json:"version,omitempty"` // Version of the gzipped tarball.
-		} `json:"source_blob"` // location of gzipped tarball of source code used to create build
-	}
-	o := new(options)
+	o := new(heroku.BuildCreateOpts)
 	o.SourceBlob.URL = url
 	// TODO: allow specifiying o.Version to a custom value and/or inferring it
 
