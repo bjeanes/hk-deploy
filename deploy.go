@@ -67,7 +67,6 @@ func main() {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
-	fmt.Println("Commenting build... not implemented")
 }
 
 func submitBuild(url *string) error {
