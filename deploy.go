@@ -4,11 +4,15 @@ import (
 	"archive/tar"
 	"bytes"
 	"compress/gzip"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/bgentry/heroku-go"
 	hk "github.com/heroku/hk/hkclient"
-	// "io"
+	"io"
 	"io/ioutil"
+	"mime/multipart"
+	"net/http"
 	"os"
 	"path/filepath"
 )
@@ -17,6 +21,7 @@ const (
 	PLUGIN_NAME    = "deploy"
 	PLUGIN_VERSION = 1
 	// PLUGIN_USER_AGENT = "hk-" + PLUGIN_NAME "/1"
+	ENDPOINT = "https://hk-deploy.herokuapp.com/"
 )
 
 var client *heroku.Client
@@ -104,6 +109,60 @@ func buildTgz(root string) bytes.Buffer {
 	return *buf
 }
 
+type S3Upload struct {
+	Action string            `json:action`
+	Fields map[string]string `json:fields`
+}
+
+func getUploadSlot() (u S3Upload, err error) {
+	if resp, err := http.Get(ENDPOINT); err == nil {
+		defer resp.Body.Close()
+		if body, err := ioutil.ReadAll(resp.Body); err == nil {
+			json.Unmarshal([]byte(body), &u)
+		}
+	}
+
+	return
+}
+
+func upload(tgz *bytes.Buffer, u S3Upload) (err error) {
+	buf := new(bytes.Buffer)
+	w := multipart.NewWriter(buf)
+
+	// Set the form fields that the server told us to
+	for field, value := range u.Fields {
+		w.WriteField(field, value)
+	}
+
+	// then attach the actual file (it must be last)
+	if writer, err := w.CreateFormFile("file", "code.tgz"); err == nil {
+		if _, err = io.Copy(writer, tgz); err != nil {
+			return err
+		}
+	} else {
+		return err
+	}
+
+	if err = w.Close(); err != nil {
+		return
+	}
+
+	if req, err := http.NewRequest("POST", u.Action, buf); err == nil {
+		req.Header.Add("Content-Type", w.FormDataContentType())
+		resp, err := http.DefaultClient.Do(req)
+		defer resp.Body.Close()
+		if err == nil {
+			if resp.StatusCode >= 400 {
+				body, _ := ioutil.ReadAll(resp.Body)
+				fmt.Println(string(body))
+				return errors.New("S3 upload rejected")
+			}
+		}
+	}
+
+	return
+}
+
 func main() {
 	if os.Getenv("HKPLUGINMODE") == "info" {
 		help()
@@ -122,7 +181,22 @@ func main() {
 	tgz := buildTgz(dir)
 	fmt.Printf("done (%d bytes)\n", tgz.Len())
 
-	fmt.Println("Requesting upload slot... not implemented")
+	fmt.Print("Requesting upload slot... ")
+	slot, err := getUploadSlot()
+	if err == nil {
+		fmt.Println("done")
+	} else {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+
+	fmt.Print("Uploading .tgz to S3... ")
+	if err := upload(&tgz, slot); err == nil {
+		fmt.Println("done")
+	} else {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
 	fmt.Println("Requesting download link... not implemented")
 	fmt.Println("Submitting build with download link... not implemented")
 	fmt.Println("Commenting build... not implemented")
