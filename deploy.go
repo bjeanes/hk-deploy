@@ -27,7 +27,11 @@ const (
 var client *heroku.Client
 var nrc *hk.NetRc
 
-func help() {}
+func help() {
+	fmt.Println(`hk deploy: Deploy a directory of code to Heroku using the Build API.
+
+Run "hk deploy DIRECTORY" to deploy the specified directory to Heroku.`)
+}
 
 func init() {
 	nrc, err := hk.LoadNetRc()
@@ -172,6 +176,11 @@ func main() {
 	if len(os.Args) < 2 {
 		help()
 		os.Exit(1)
+	}
+
+	if os.Args[1] == "-h" || os.Args[1] == "--help" {
+		help()
+		os.Exit(0)
 	}
 
 	dir := os.Args[1] // TODO: Maybe fallback to CWD or Git root?
