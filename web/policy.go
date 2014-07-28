@@ -38,7 +38,7 @@ func (policy policy) expiry() time.Time {
 }
 
 func (policy policy) Key() string {
-	return policy.time.Format(short) + "/" + policy.uuid + ".tgz"
+	return "uploads/" + policy.time.Format(short) + "/" + policy.uuid + ".tgz"
 }
 
 func (policy policy) Credential() string {
