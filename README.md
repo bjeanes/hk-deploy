@@ -23,6 +23,9 @@ Pre-compiled binaries are available
 [here](http://beta.gobuild.io/github.com/bjeanes/hk-deploy) but I've had mixed
 luck with them (some memory-related `panic()`s are happening).
 
+After unarchiving, stick the `deploy` binary in `/usr/local/lib/hk/plugin` or
+your custom `$HKPATH`.
+
 ### Source install
 
 Make sure you have Go (only 1.3 has been tested) installed.
