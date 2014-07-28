@@ -15,6 +15,31 @@ credentials for uploading to an S3 bucket, archives the requested directory,
 uploads it, then kicks off a build by supplying a short-lived public URL for
 the uploaded source archive.
 
+## Usage
+
+```sh-session
+$ hk deploy .
+Creating .tgz of /Users/bjeanes/Code/Go/src/github.com/bjeanes/hk-deploy...
+  Adding .godir (10 bytes)
+  Adding Procfile (9 bytes)
+  Adding README.md (817 bytes)
+  Adding deploy.go (2157 bytes)
+  Adding hkclient/heroku.go (79984 bytes)
+  Adding hkclient/schema.json (172131 bytes)
+  Adding tgz.go (1491 bytes)
+  Adding upload.go (1249 bytes)
+  Adding web/README.md (1893 bytes)
+  Adding web/consts.go (305 bytes)
+  Adding web/iam-policy.json (527 bytes)
+  Adding web/main.go (161 bytes)
+  Adding web/policy.go (3303 bytes)
+  Adding web/serve.go (943 bytes)
+done (34728 bytes)
+Requesting upload slot... done
+Uploading .tgz to S3... done
+Submitting build with download link... done
+```
+
 ## Install
 
 ### Pre-compiled Binaries
