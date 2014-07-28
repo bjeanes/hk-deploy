@@ -61,7 +61,7 @@ func main() {
 
 	// working downloadable link now in slot.DownloadUrl
 	fmt.Print("Submitting build with download link... ")
-	if err := submitBuild(&slot.DownloadUrl); err == nil {
+	if _, err := submitBuild(&slot.DownloadUrl); err == nil {
 		fmt.Println("done")
 	} else {
 		fmt.Println(err.Error())
@@ -69,7 +69,7 @@ func main() {
 	}
 }
 
-func submitBuild(url *string) error {
+func submitBuild(url *string) (*heroku.Build, error) {
 	app := os.Getenv("HKAPP")
 	heroku.DefaultTransport.Username = os.Getenv("HKUSER")
 	heroku.DefaultTransport.Password = os.Getenv("HKPASS")
@@ -86,11 +86,10 @@ func submitBuild(url *string) error {
 	}
 	o := new(options)
 	o.SourceBlob.URL = url
-	if build, err := hk.BuildCreate(app, *o); err == nil {
-		fmt.Printf("%+v\n", build)
-	} else {
-		return err
-	}
 
-	return nil
+	if build, err := hk.BuildCreate(app, *o); err != nil {
+		return nil, err
+	} else {
+		return build, nil
+	}
 }
