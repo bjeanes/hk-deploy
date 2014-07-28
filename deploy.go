@@ -70,6 +70,7 @@ func main() {
 
 	// TODO: stream output (https://devcenter.heroku.com/articles/build-and-release-using-the-api#experimental-realtime-build-output).
 	//       To do so, the heroku client will need to be updated to work with `edge` schema.
+
 }
 
 func submitBuild(url *string) (*heroku.Build, error) {
@@ -89,6 +90,7 @@ func submitBuild(url *string) (*heroku.Build, error) {
 	}
 	o := new(options)
 	o.SourceBlob.URL = url
+	// TODO: allow specifiying o.Version to a custom value and/or inferring it
 
 	if build, err := hk.BuildCreate(app, *o); err != nil {
 		return nil, err
