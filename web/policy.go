@@ -108,5 +108,5 @@ func (policy policy) ToCurl() string {
 		`-FX-Amz-Date="` + policy.time.Format(iso8601) + `" ` +
 		`-FPolicy="` + policy.Encoded() + `" ` +
 		`-FX-Amz-Signature="` + policy.Signature() + `" ` +
-		`-Ffile=@/tmp/foo.tar.gz`
+		`-Ffile=@$FILE_TO_UPLOAD`
 }
