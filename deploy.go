@@ -67,6 +67,9 @@ func main() {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
+
+	// TODO: stream output (https://devcenter.heroku.com/articles/build-and-release-using-the-api#experimental-realtime-build-output).
+	//       To do so, the heroku client will need to be updated to work with `edge` schema.
 }
 
 func submitBuild(url *string) (*heroku.Build, error) {
