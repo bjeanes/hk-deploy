@@ -114,8 +114,8 @@ func buildTgz(root string) bytes.Buffer {
 }
 
 type S3Upload struct {
-	Action string            `json:action`
-	Fields map[string]string `json:fields`
+	Action, DownloadUrl string
+	Fields              map[string]string
 }
 
 func getUploadSlot() (u S3Upload, err error) {
@@ -206,7 +206,8 @@ func main() {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
-	fmt.Println("Requesting download link... not implemented")
+
+	// working downloadable link now in slot.DownloadUrl
 	fmt.Println("Submitting build with download link... not implemented")
 	fmt.Println("Commenting build... not implemented")
 }

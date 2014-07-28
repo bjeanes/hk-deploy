@@ -6,15 +6,19 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
+	"launchpad.net/goamz/aws"
+	S3 "launchpad.net/goamz/s3"
 	"os"
 	"time"
 )
 
 var (
-	bucket      = os.Getenv("AWS_S3_BUCKET")
 	keyId       = os.Getenv("AWS_ACCESS_KEY_ID")
 	secret      = os.Getenv("AWS_SECRET_ACCESS_KEY")
-	action      = "https://" + bucket + ".s3.amazonaws.com/"
+	auth, _     = aws.EnvAuth()
+	s3          = S3.New(auth, aws.USEast)
+	bucket      = s3.Bucket(os.Getenv("AWS_S3_BUCKET"))
+	action      = "https://" + bucket.Name + ".s3.amazonaws.com/"
 	expireAfter = 10 * time.Minute
 )
 
@@ -53,7 +57,7 @@ func (policy policy) ToJson() string {
 	"expiration": "` + policy.expiry().Format(time.RFC3339) + `",
 	"conditions": [
 		{"acl": "` + acl + `" },
-		{"bucket": "` + bucket + `" },
+		{"bucket": "` + bucket.Name + `" },
 		{"key": "` + policy.Key() + `"},
 		{"x-amz-date": "` + policy.time.Format(iso8601) + `"},
 		{"x-amz-credential": "` + policy.Credential() + `"},
@@ -82,10 +86,16 @@ func (policy policy) SigningKey() []byte {
 	return signingKey
 }
 
+func (policy policy) DownloadURL() string {
+	// add an extra expiration period to the download URL
+	return bucket.SignedURL(policy.Key(), policy.expiry().Add(expireAfter))
+}
+
 func (policy policy) ToJsonResponse() string {
 	return `{
-	"action": "` + action + `",
-	"fields": {
+	"Action": "` + action + `",
+	"DownloadUrl": "` + policy.DownloadURL() + `",
+	"Fields": {
 		"key": "` + policy.Key() + `",
 		"acl": "` + acl + `",
 		"Content-Type": "` + contentType + `",
