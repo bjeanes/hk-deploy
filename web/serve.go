@@ -9,9 +9,13 @@ import (
 var port = os.Getenv("PORT")
 
 func formCurlHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/x-shellscript")
+
 	policy := NewPolicy()
 	fmt.Printf("Serving upload policy for /%s\n", policy.Key())
-	fmt.Fprintln(w, policy.ToCurl())
+	fmt.Fprintln(w, `#!/usr/bin/env sh
+FILE_TO_UPLOAD=$1
+`+policy.ToCurl())
 }
 
 func formJsonHandler(w http.ResponseWriter, r *http.Request) {
@@ -38,7 +42,7 @@ func Serve() {
 	http.HandleFunc("/slot", formJsonHandler)
 
 	// new routes:
-	http.HandleFunc("/form.curl", formCurlHandler)
+	http.HandleFunc("/form.sh", formCurlHandler)
 	http.HandleFunc("/form.json", formJsonHandler)
 
 	http.HandleFunc("/", defaultHandler)
