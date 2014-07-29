@@ -1,4 +1,4 @@
-package main
+package policy
 
 const (
 	region      = "us-east-1" // FIXME: can be derived from bucket?
