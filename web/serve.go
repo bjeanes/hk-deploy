@@ -8,13 +8,13 @@ import (
 
 var port = os.Getenv("PORT")
 
-func curlHandler(w http.ResponseWriter, r *http.Request) {
+func formCurlHandler(w http.ResponseWriter, r *http.Request) {
 	policy := NewPolicy()
 	fmt.Printf("Serving upload policy for /%s\n", policy.Key())
 	fmt.Fprintln(w, policy.ToCurl())
 }
 
-func slotHandler(w http.ResponseWriter, r *http.Request) {
+func formJsonHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 
 	policy := NewPolicy()
@@ -33,8 +33,14 @@ func Serve() {
 	listen := fmt.Sprintf(":%s", port)
 	fmt.Println("Listening on " + listen)
 
-	http.HandleFunc("/curl", curlHandler)
-	http.HandleFunc("/slot", slotHandler)
+	// original routes:
+	http.HandleFunc("/curl", formCurlHandler)
+	http.HandleFunc("/slot", formJsonHandler)
+
+	// new routes:
+	http.HandleFunc("/form.curl", formCurlHandler)
+	http.HandleFunc("/form.json", formJsonHandler)
+
 	http.HandleFunc("/", defaultHandler)
 	http.ListenAndServe(listen, nil)
 }
