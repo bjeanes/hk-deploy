@@ -2,9 +2,11 @@ package main
 
 import (
 	"fmt"
-	"github.com/cyberdelia/heroku-go/v3"
+	"io"
 	"os"
 	"path/filepath"
+
+	"github.com/naaman/hbuild"
 )
 
 const (
@@ -14,7 +16,7 @@ const (
 	INFO_PREAMBLE  = `%s %d: Deploy code to Heroku using the API`
 	HELP_TEXT      = `Usage: hk deploy DIRECTORY
 
-Deploy the specified directory to Heroku`
+	Deploy the specified directory to Heroku`
 )
 
 func help() {
@@ -45,55 +47,46 @@ func main() {
 	dir := os.Args[1] // TODO: Maybe fallback to CWD or Git root?
 
 	fullPath, _ := filepath.Abs(dir)
-	fmt.Printf("Creating .tgz of %s...\n", fullPath)
-	tgz := buildTgz(dir)
-	fmt.Printf("done (%d bytes)\n", tgz.Len())
 
-	fmt.Print("Requesting upload slot... ")
-	slot, err := getUploadSlot()
-	if err == nil {
-		fmt.Println("done")
-	} else {
-		fmt.Println(err.Error())
-		os.Exit(1)
-	}
+	var source hbuild.Source
+	var build hbuild.Build
+	var err error
 
-	fmt.Print("Uploading .tgz to S3... ")
-	if err := upload(&tgz, slot); err == nil {
-		fmt.Println("done")
-	} else {
-		fmt.Println(err.Error())
-		os.Exit(1)
-	}
-
-	// working downloadable link now in slot.DownloadUrl
-	fmt.Print("Submitting build with download link... ")
-	if _, err := submitBuild(&slot.DownloadUrl); err == nil {
-		fmt.Println("done")
-	} else {
-		fmt.Println(err.Error())
-		os.Exit(1)
-	}
-
-	// TODO: stream output (https://devcenter.heroku.com/articles/build-and-release-using-the-api#experimental-realtime-build-output).
-	//       To do so, the heroku client will need to be updated to work with `edge` schema.
-
-}
-
-func submitBuild(url *string) (*heroku.Build, error) {
 	app := os.Getenv("HKAPP")
-	heroku.DefaultTransport.Username = os.Getenv("HKUSER")
-	heroku.DefaultTransport.Password = os.Getenv("HKPASS")
+	apiKey := os.Getenv("HKPASS")
 
-	hk := heroku.NewService(heroku.DefaultClient)
+	fmt.Println(apiKey)
 
-	o := new(heroku.BuildCreateOpts)
-	o.SourceBlob.URL = url
-	// TODO: allow specifiying o.Version to a custom value and/or inferring it
-
-	if build, err := hk.BuildCreate(app, *o); err != nil {
-		return nil, err
-	} else {
-		return build, nil
+	fmt.Print("Creating source...")
+	source, err = hbuild.NewSource(apiKey, app, fullPath)
+	if err != nil {
+		fmt.Println(err)
+		return
 	}
+	fmt.Println("done.")
+
+	fmt.Print("Compressing source...")
+	err = source.Compress()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println("done.")
+
+	fmt.Print("Uploading source...")
+	err = source.Upload()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println("done.")
+
+	fmt.Println("Building:")
+	build, err = hbuild.NewBuild(apiKey, app, source)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	io.Copy(os.Stdout, build.Output)
 }
