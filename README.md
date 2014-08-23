@@ -65,7 +65,7 @@ it for easy testing:
 #!/usr/bin/env sh
 
 cd (go env GOPATH)/src/github.com/bjeanes/hk-deploy
-go build *.go $*
+go run *.go $*
 ```
 
 YMMV
