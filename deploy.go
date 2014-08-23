@@ -55,8 +55,6 @@ func main() {
 	app := os.Getenv("HKAPP")
 	apiKey := os.Getenv("HKPASS")
 
-	fmt.Println(apiKey)
-
 	fmt.Print("Creating source...")
 	source, err = hbuild.NewSource(apiKey, app, fullPath)
 	if err != nil {
